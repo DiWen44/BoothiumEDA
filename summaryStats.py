@@ -1,7 +1,9 @@
 import argparse
 import pandas as pd
 
-"""Prints table of summary stats based on passed command arguments
+
+"""
+Prints table of summary stats based on passed command arguments
 
 PARAMETERS:
 data - the input dataframe
@@ -16,105 +18,72 @@ def summaryStats(data, args):
                         default=list(data.columns.values),
                         help="The variables to analyze")
     parser.add_argument('-s', '--stats',
-                        nargs='*',
-                        default=['MEAN', 'MEDIAN', 'VAR', 'RANGE'],
+                        nargs='*', 
+                        default=['mean', 'median', 'var', 'min', 'max'],
                         help="Summary statistics to find")
     parser.add_argument('-c', '--categoricals',
                         nargs='*',
                         default=[],
                         help="Categorical variables along which to seperate data")
     parsedArgs = parser.parse_args(args)
+    
+    # Check if requested vars are all present in data
+    if not set(parsedArgs.vars).issubset(data.columns):
+        print("ERROR: Specified variable(s) not present in data")
+    
+    # Check if requested vars are numerical by iterating through columns of requested vars
+    for i in data[parsedArgs.vars]:
+        if not pd.api.types.is_numeric_dtype(i):
+            print(f"ERROR: Type {i.name} is not numeric")
+            return
 
-    table = tabulate(data, args.vars, args.stats, args.categoricals)
-    print(table)
+    # Check if categorical vars are present in data
+    if not set(parsedArgs.categoricals).issubset(data.columns):
+        print("ERROR: Specified categorical variable(s) not present in data")
 
+    if parsedArgs.categoricals == []:
+        table = tabulate(data, args.vars, args.stats)
+    else:
+        table = tabulateByCategoricals(data, args.vars, args.stats, args.categoricals)
+
+    if table != -1: 
+        print(table)
+    # If -1 returned and table couldn't be resolved, we simply return to the command loop without printing the table
 
 
 """
 Find summary statistics for provided numerical variables and tabulates them in a dataframe 
-If no categorical variables (to calculate summary statistics for variables of individuals belonging to specific categories) are provided then the 
-returned dataframe will have the variables as indices and the summary statistics (e.g mean, mode, variance) as columns.
+This dataframe will have the numerical variables as columns and their corresponding summary statistics (e.g mean, mode, variance) as indices.
+Returns the new tabulated summary stats as a dataframe. If an error is found, returns -1.
 
-If categorical variables are provided, then a multiindex of the categorical variables and the numerical variables is used, 
-with 1 level of the multiindex for each categorical variables, plus 1 level for the numerical variables. The summary statistics will still be the columns here. 
+PARAMETERS:
+data- the input dataframe
+vars - array of numerical variables to find summary statistics for
+stats - array of summary statistics (e.g. mean, variance, mode) to find. 
+
+TO GROUP SUMMARY STATISTICS FOR NUMERICAL VARIABLES BY CATEGORIES SPECIFIED BY CATEGORICAL VARIABLES IN THE DATA, USE tabulateByCategoricals()
+"""
+def tabulate(data, vars, stats):
+    table = pd.DataFrame(index=vars) # Results table - columns are numerical variables, index is summary statistics
+    table = data[vars].agg(stats)
+    return table
+            
+                
+"""
+Divides provided numerical variables into categories based on provided categorical variables, finds summary statistics for the numerical vars,
+and tabulates them in a dataframe.
+Returns the new tabulated summary stats as a dataframe. If an error is found, returns -1.
+
+For the index of the returned dataframe, a multiindex of the categorical variables and the numerical variables is used, 
+with 1 level of the multiindex for each categorical variables, plus 1 level for the numerical variables. The summary statistics will be the columns here. 
 The number of levels of this multiindex depends on the number of categorical variables provided. For n categorical variables, the multiindex will have n+1 levels (categorical variables + one for the numerical variables)
 
 PARAMETERS:
 data- the input dataframe
 vars - array of numerical variables to find summary statistics for
 stats - array of summary statistics (e.g. mean, variance, mode) to find. 
-categoricals - categorical variables in the data to divide entries into categories along, so as to be able to find summary statistics for each category
-
-Vars, stats and categoricals are extracted from command arguments in the summmaryStats function that calls this function.
+categoricals - categorical variables in the data to divide entries into categories along, so as to be able to find summary statistics for each category.
 """
-def tabulate(data, vars, stats, categoricals):
-        
-        # If no categoricals, then can use single-level index
-        if categoricals == []:
-
-            table = pd.DataFrame(index=vars) # Results table - index is numerical variables, columns are summary statistics
-
-            for stat in stats:
-                if stat == 'MEAN':
-                    means = data.mean(axis=0)[vars] # Pandas series of means for each variable. Use [vars] to only get statistics for requested variables.
-                    means.rename('mean') # Rename series so that when joined to dataframe, column has that name
-                    table.join(means)
-
-                elif stat == 'MEDIAN':
-                    medians = data.median(axis=0)[vars]
-                    medians.rename('median')
-                    table.join(medians)
-
-                elif stat == 'MIN': 
-                    mins = data.min()[vars]
-                    mins.rename('min')
-                    table.join(mins)
-
-                elif stat == 'MAX': 
-                    maxs = data.max()[vars]
-                    maxs.rename('max')
-                    table.join(maxs)
-
-                elif stat == 'RANGE':
-                    ranges = data.max()[vars].sub(data.min()[vars])
-                    ranges.rename('range')
-                    table.join(ranges)
-
-                elif stat == 'VAR': # Variance
-                    variances = data.var(axis=0)[vars] 
-                    variances.rename('variance')
-                    table.join(variances)
-
-                elif stat == 'STD': # Standard deviation
-                    stds = data.std(axis=0)[vars] 
-                    stds.rename('STD')
-                    table.join(stds)
-
-                elif stat == 'MODE':
-                    modes = data.mode(axis=0)[vars] 
-                    modes.rename('mode')
-                    table.join('mode')
-
-                else:
-                    print(f"ERROR: {stat} IS NOT A VALID SUMMARY STATISTIC")
-                    return -1
-        
-
-        # If categoricals provided, need to use a multiindex
-        else:
-
-            indices = [] # multidimensional array from which to create multiindex
-            for i in categoricals:
-                categories = data[i].unique # Each unique value of categorical variable represents a category
-                indices.append(categories)
-            indices.append(vars) # Final level of multiindex is for numerical variables
-
-            labels = categoricals.append("numericals") # Labels for each level of the multiindex (names of each categorical variable, plus "numeric" for the numerical variables)
-            index = pd.MultiIndex.from_product(indices, names=labels)
-            table = pd.DataFrame(index=index)
-
-            
-        return table
-            
-
-                
+def tabulateByCategoricals(data, vars, stats, categoricals):
+    table = data.groupby(categoricals).agg(stats)
+    return table[vars] # Only return requested variables
