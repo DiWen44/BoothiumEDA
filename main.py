@@ -1,5 +1,7 @@
 import sys
+import commandParser
 
+import pandas as pd
 
 # Command-line arg is name of input CSV file
 try:
@@ -8,14 +10,15 @@ except IndexError: # If no file was provided
     print("ERROR: No input CSV file provided")
     sys.exit()
 
-try:
-    file = open(filename, "r")
-except FileExistsError:
-    print("ERROR: File does not exist")
+# If provided file isn't a CSV file
+if filename[-4:] != '.csv':
+    print("ERROR: Input file must be a CSV file")
     sys.exit()
 
-if filename[-3:] != '.csv': # If provided file isn't a CSV file
-    print("ERROR: Input file must be a CSV file")
+try:
+    data = pd.read_csv(filename) # Load file into pd dataframe
+except FileNotFoundError:
+    print("ERROR: File does not exist")
     sys.exit()
 
 print("-"*40 + "\n")
@@ -25,7 +28,9 @@ print("Type HELP command for information \n\n")
 
 # Command loop
 while True:
-    command = str(input("> ")).split()
+    command = str(input("> "))
     print("\n")
-    
+    commandParser.parse(command, data)
+
+
 
