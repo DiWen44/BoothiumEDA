@@ -1,5 +1,5 @@
 import sys
-import commandParser
+import commandInterpreter
 
 import pandas as pd
 
@@ -30,7 +30,7 @@ print("Type HELP command for information \n\n")
 while True:
     command = str(input("> "))
     print("\n")
-    commandParser.parse(command, data)
+    commandInterpreter.interpret(command, data)
 
 
 
