@@ -65,9 +65,11 @@ def getStats(data, args):
 
 
 """
+ONLY FOR USE WITHIN THE SUMMARYSTATS MODULE
+
 Find summary statistics for provided numerical variables and tabulates them in a dataframe 
-This dataframe will have the numerical variables as columns and their corresponding summary statistics (e.g mean, mode, variance) as indices.
-Returns the new tabulated summary stats as a dataframe. Only for use within summaryStats module.
+This dataframe will have the numerical variables as columns and their corresponding summary statistics (e.g mean, mode, variance) will form the row index.
+Returns the new tabulated summary stats as a dataframe. 
 
 PARAMETERS:
 data- the input dataframe
@@ -77,19 +79,28 @@ stats - array of summary statistics (e.g. mean, variance, mode) to find.
 TO GROUP SUMMARY STATISTICS FOR NUMERICAL VARIABLES BY CATEGORIES SPECIFIED BY CATEGORICAL VARIABLES IN THE DATA, USE tabulateByCategoricals()
 """
 def __tabulate(data, vars, stats):
-    table = data[vars].agg(stats)
+
+    # Make a dictionary to map requested vars to array of requested stats, for use in .agg()
+    varsDict = {}
+    for var in vars:
+        varsDict[var] = stats
+
+    table = data.agg(varsDict)
     return table
             
                 
 """
+ONLY FOR USE WITHIN THE SUMMARYSTATS MODULE
+
 Divides provided numerical variables into categories based on provided categorical variables, finds summary statistics for the numerical vars,
 and tabulates them in a dataframe.
 Returns the new tabulated summary stats as a dataframe
 
-For the index of the returned dataframe, a multiindex of the categorical variables and the numerical variables is used, 
-with 1 level of the multiindex for each categorical variables, plus 1 level for the numerical variables. The summary statistics will be the columns here. 
-The number of levels of this multiindex depends on the number of categorical variables provided. For n categorical variables, the multiindex will have n+1 levels (categorical variables + one for the numerical variables).
-Only for use within summaryStats module.
+The columns of the returned dataframe will be a 2-level multiindex, the upper level being the numerical variables and the lower level 
+being the requested summary statistics.
+The rows of the dataframe will pertain to the categoricals provided. If one categorical variable is provided, then it will be a simple index of the categoricals.
+If more than one is provided, the row index will be a multiindex of the categorical variable (each level pertains to one of the requested categoricals).
+So, for n categoricals, an n-level multiindex will be used for the rows
 
 PARAMETERS:
 data- the input dataframe
@@ -98,5 +109,11 @@ stats - array of summary statistics (e.g. mean, variance, mode) to find.
 categoricals - categorical variables in the data to divide entries into categories along, so as to be able to find summary statistics for each category.
 """
 def __tabulateByCategoricals(data, vars, stats, categoricals):
-    table = (data.groupby(categoricals))[vars].agg(stats)
+
+    # Make a dictionary to map requested vars to array of requested stats, for use in .agg()
+    varsDict = {}
+    for var in vars:
+        varsDict[var] = stats
+
+    table = (data.groupby(categoricals)).agg(varsDict)
     return table

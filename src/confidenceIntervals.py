@@ -1,6 +1,5 @@
 import argparse
 from functools import reduce
-from math import sqrt
 
 import pandas as pd
 import numpy as np
@@ -46,7 +45,8 @@ def getCI(data, args):
     check = utils.checkNumericalVarsRequested(data, parsedArgs.vars)
     if check == -1:
         return 
-
+    
+    # Make a dictionary to map requested vars to array of requested stats, for use in .agg()
     varsDict = {}
     for var in parsedArgs.vars:
         varsDict[var] = __getMeanInt
@@ -67,6 +67,12 @@ def getCI(data, args):
 # The interval is returned as a single item list containing a tuple that itself contains the lower and upper bounds (in that order) of the interval
 # Wrapping the tuple in a list means that pandas will place the interval into a single column of the table, rather than splitting that column into 2 subcolumns
 def __getMeanInt(series):
+    n = series.dropna().size 
+    xbar = series.mean() # Sample mean
+    s = series.std() # Sample std
 
-    interval = stats.t.interval(alpha=0.95, loc=series.mean(), df=series.dropna().size-1, scale=stats.sem(series))
+    t_value = stats.t.ppf(1 - 0.95/2, df=n-1)
+    marginOfErr = t_value * (s / np.sqrt(n))
+
+    interval = (xbar-marginOfErr, xbar+marginOfErr)
     return [interval] # Return as a 1 item list, containing the interval as a tuple. This means that pandas will place the interval into a single column of the resulting dataframe
