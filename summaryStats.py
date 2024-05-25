@@ -1,5 +1,6 @@
 import argparse
 import pandas as pd
+import utils
 
 
 """
@@ -17,7 +18,7 @@ categoricals - a list of variables in the dataset whose values shall be used as 
 Requested sample statistics will then be calculated for the numerical variables of each category, rather than the dataset as a whole. Denoted in user command by -c or --categoricals.
 If no categoricals are provided, no categorization will take place and summary statistics will be calculated for the whole dataset holistically. By default the categoricals list will be empty.
 
-PARAMETERS:
+FUNCTION PARAMETERS:
 data - the input dataframe
 args - array of command window argument strings obtained by command interpreter module
 """
@@ -28,7 +29,7 @@ def getStats(data, args):
     parser.add_argument('-v','--vars', 
                         nargs='*', 
                         default=list(data.select_dtypes(include='number').columns) , # Default value is all numerical variables in the dataset, so the names of the numerical columns in the dataframe
-                        help="The variables to analyze")
+                        help="The numerical variables to analyze")
     parser.add_argument('-s', '--stats',
                         nargs='*', 
                         default=['mean', 'median', 'var'],
@@ -39,16 +40,10 @@ def getStats(data, args):
                         help="Categorical variables along which to seperate data")
     parsedArgs = parser.parse_args(args)
     
-    # Check if requested vars are all present in data
-    if not set(parsedArgs.vars).issubset(data.columns):
-        print("ERROR: Specified variable(s) not present in data")
-        return
-    
-    # Check if requested vars are numerical by iterating through columns of requested vars
-    for i in data[parsedArgs.vars]:
-        if not pd.api.types.is_numeric_dtype(data[i]):
-            print(f"ERROR: Type {i} is not numeric")
-            return
+    # Check if requested numerical vars are valid
+    check = utils.checkNumericalVarsRequested(data, parsedArgs.vars)
+    if check == -1:
+        return 
         
     # Check if requested summary stats are valid
     validStats = ['mean', 'median', 'mode', 'count', 'sum', 'std', 'var', 'min', 'max']
