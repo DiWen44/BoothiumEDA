@@ -61,7 +61,7 @@ def getCI(data, args):
         n = series.dropna().size 
         xbar = series.mean() # Sample mean
         s = series.std() # Sample std
-        cl = parsedArgs.lvl > 1 or parsedArgs.lvl < 0 # Confidence level
+        cl = parsedArgs.lvl # Confidence level
         t_value = stats.t.ppf(1 - cl/2, df=n-1)
         marginOfErr = t_value * (s / np.sqrt(n))
         interval = (xbar-marginOfErr, xbar+marginOfErr)
