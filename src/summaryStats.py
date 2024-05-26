@@ -80,7 +80,7 @@ TO GROUP SUMMARY STATISTICS FOR NUMERICAL VARIABLES BY CATEGORIES SPECIFIED BY C
 """
 def __tabulate(data, vars, stats):
 
-    # Make a dictionary to map requested vars to array of requested stats, for use in .agg()
+    # Dictionary to map requested vars to array of requested stats, for use in .agg()
     varsDict = {}
     for var in vars:
         varsDict[var] = stats
@@ -110,7 +110,7 @@ categoricals - categorical variables in the data to divide entries into categori
 """
 def __tabulateByCategoricals(data, vars, stats, categoricals):
 
-    # Make a dictionary to map requested vars to array of requested stats, for use in .agg()
+    # Dictionary to map requested vars to array of requested stats, for use in .agg()
     varsDict = {}
     for var in vars:
         varsDict[var] = stats

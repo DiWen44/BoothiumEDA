@@ -32,7 +32,8 @@ def getCI(data, args):
     parser = argparse.ArgumentParser()
     parser.add_argument('lvl', 
                         nargs='?',
-                        default=0.95)
+                        default=0.95,
+                        type=float)
     parser.add_argument('-v','--vars', 
                         nargs='*', 
                         default=list(data.select_dtypes(include='number').columns)) # Default value is all numerical variables in the dataset, so the names of the numerical columns in the dataframe
@@ -46,10 +47,31 @@ def getCI(data, args):
     if check == -1:
         return 
     
-    # Make a dictionary to map requested vars to array of requested stats, for use in .agg()
+    # Check if provided confidence level is valid
+    if parsedArgs.lvl >= 1 or parsedArgs.lvl <= 0:
+        print("ERROR: Confidence level must be a float between 0 and 1")
+        return
+
+
+    # NESTED FUNCTION FOR USE AS AN AGGREGATION FUNCTION IN .agg()
+    # Provided a pandas series/column, returns a confidence interval for the population mean of the variable represented by the series/column
+    # The interval is returned as a single item list containing a tuple that itself contains the lower and upper bounds (in that order) of the interval
+    # Wrapping the tuple in a list means that pandas will place the interval into a single column of the table, rather than splitting that column into 2 subcolumns
+    def getMeanInt(series):
+        n = series.dropna().size 
+        xbar = series.mean() # Sample mean
+        s = series.std() # Sample std
+        cl = parsedArgs.lvl > 1 or parsedArgs.lvl < 0 # Confidence level
+        t_value = stats.t.ppf(1 - cl/2, df=n-1)
+        marginOfErr = t_value * (s / np.sqrt(n))
+        interval = (xbar-marginOfErr, xbar+marginOfErr)
+        return [interval] # Return as a 1 item list, containing the interval as a tuple. This means that pandas will place the interval into a single column of the resulting dataframe
+    
+
+    # Dictionary to map requested vars to getMeanInt() function, for use in .agg()
     varsDict = {}
     for var in parsedArgs.vars:
-        varsDict[var] = __getMeanInt
+        varsDict[var] = getMeanInt
 
     if parsedArgs.categoricals == []:
         table = data.agg(varsDict)
@@ -61,18 +83,3 @@ def getCI(data, args):
         table = data.groupby(parsedArgs.categoricals).agg(varsDict)
     
     print(table)
-
-
-# Provided a pandas series/column, returns a confidence interval for the population mean of the variable represented by the series/column
-# The interval is returned as a single item list containing a tuple that itself contains the lower and upper bounds (in that order) of the interval
-# Wrapping the tuple in a list means that pandas will place the interval into a single column of the table, rather than splitting that column into 2 subcolumns
-def __getMeanInt(series):
-    n = series.dropna().size 
-    xbar = series.mean() # Sample mean
-    s = series.std() # Sample std
-
-    t_value = stats.t.ppf(1 - 0.95/2, df=n-1)
-    marginOfErr = t_value * (s / np.sqrt(n))
-
-    interval = (xbar-marginOfErr, xbar+marginOfErr)
-    return [interval] # Return as a 1 item list, containing the interval as a tuple. This means that pandas will place the interval into a single column of the resulting dataframe
