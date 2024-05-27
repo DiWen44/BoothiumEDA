@@ -1,6 +1,5 @@
 import argparse
 from functools import reduce
-
 import pandas as pd
 import numpy as np
 from scipy import stats
@@ -28,7 +27,7 @@ args - array of command window argument strings obtained by command interpreter 
 """
 def getCI(data, args):
 
-    # Deriving argument values from args string using argparse
+    # Deriving argument values from args array using argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('lvl', 
                         nargs='?',

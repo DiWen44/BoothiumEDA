@@ -2,6 +2,7 @@ import sys
 
 import summaryStats
 import confidenceIntervals
+import dist
 
 # When provided a command string, interprets that command based on first token (the "opcode"). 
 # Also takes the user's input data as a pd dataframe called "data".
@@ -22,9 +23,13 @@ def interpret(command, data):
         case 'summary':
             summaryStats.getStats(data, args)
 
-        #confidence intervals
+        # Confidence intervals
         case 'ci':
             confidenceIntervals.getCI(data, args)
+
+        # Distribution
+        case 'dist':
+            dist.showDistInfo(data, args)
 
         case _:
             print("ERROR: Invalid command")
