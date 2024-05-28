@@ -21,6 +21,7 @@ categoricals - a list of variables in the dataset whose values shall be used as 
 CIs  will then be calculated for the means of the numerical variables of each category, rather than the dataset as a whole. Denoted in user command by -c or --categoricals.
 If no categoricals are provided, no categorization will take place and confidence intervals will be calculated for the whole dataset holistically. By default the categoricals list will be empty.
 
+
 FUNCTION PARAMETERS:
 data - the input dataframe
 args - array of command window argument strings obtained by command interpreter module
