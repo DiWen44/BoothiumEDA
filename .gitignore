@@ -2,3 +2,4 @@ venv
 .vscode
 test_data.csv
 src/__pycache__
+output.png
