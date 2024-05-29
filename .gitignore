@@ -1,5 +1,6 @@
 venv
 .vscode
-test_data.csv
+test_data_large.csv
+test_data_small.csv
 src/__pycache__
 output.png
