@@ -32,7 +32,7 @@ def showDistInfo(data, args):
 
     # Deriving argument values from args array using argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('var', nargs=1),
+    parser.add_argument('var'),
     parser.add_argument('bins',
                     nargs='?',
                     type=int,
@@ -46,7 +46,7 @@ def showDistInfo(data, args):
     parsedArgs = parser.parse_args(args)
 
     # Check if requested numerical var is valid
-    checkVar = 0 # utils.checkNumericalVarsRequested(data, [parsedArgs.var])
+    checkVar = utils.checkNumericalVarsRequested(data, [parsedArgs.var])
     if checkVar == -1:
         return 
     
@@ -59,8 +59,7 @@ def showDistInfo(data, args):
         plot = __plotDist(data, parsedArgs.var, parsedArgs.bins)
     else:
         # Check if categorical vars requested are present in data
-        if not set(parsedArgs.categoricals).issubset(data.columns):
-            print("ERROR: Specified categorical variable(s) not present in data")
+        if utils.checkValidCategoricals(data, parsedArgs.categoricals) == -1:
             return
         plot = __plotDistByCategoricals(data, parsedArgs.var, parsedArgs.categoricals, parsedArgs.bins)
 
@@ -81,7 +80,7 @@ var - numerical var to get distribution for
 bins - number of intervals to divide values into for the histogram
 """
 def __plotDist(data, var, bins):
-    plot = sns.displot(data=data, kde=True, bins=bins, x=var)
+    plot = sns.displot(data=data, kde=True, x=var, bins=bins)
     plot.set_titles(f"Distribution of {var}")
     return plot
 
@@ -96,7 +95,16 @@ categoricals - categorical variable(s) to seperate values of var along
 bins - number of intervals to divide values into for the histogram
 """
 def __plotDistByCategoricals(data, var, categoricals, bins):
-    plot = sns.displot(data=data, kde=True, bins=bins, x=var, hue=categoricals)
+    cutData = data[categoricals+var] # Get only the necessary columns i.e. those for the categoricals and the var, so as to reduce processing time
+
+    if len(categoricals) > 1: # If more than 1 category requested
+        plotData = cutData.set_index(categoricals) # Make index a multiindex of the categoricals
+        plotData.index = ['_'.join(row) for row in plotData.index.values] # Fuses plotData's multiindex of categoricals into a single index 
+        plot = sns.displot(data=plotData, kde=True, bins=bins, x=var, hue=plotData.index)
+
+    else:
+        plot = sns.displot(data=cutData, kde=True, bins=bins, x=var, hue=categoricals[0])
+    
     plot.set_titles(f"Distribution of {var} by {categoricals}")
     return plot
 
@@ -107,5 +115,5 @@ def __plotDistByCategoricals(data, var, categoricals, bins):
 def __checkValidPng(filename):
     if filename[-4:] != '.png':
         print("ERROR: output file must be a .png file")
-        return -1
+        return -1 
     return 0

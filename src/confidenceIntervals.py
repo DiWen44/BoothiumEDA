@@ -77,8 +77,7 @@ def getCI(data, args):
         table = data.agg(varsDict)
     else:
         # Check if categorical vars requested are present in data
-        if not set(parsedArgs.categoricals).issubset(data.columns):
-            print("ERROR: Specified categorical variable(s) not present in data")
+        if utils.checkValidCategoricals(data, parsedArgs.categoricals) == -1:
             return
         table = data.groupby(parsedArgs.categoricals).agg(varsDict)
     

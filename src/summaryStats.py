@@ -58,8 +58,7 @@ def getStats(data, args):
         table = __tabulate(data, parsedArgs.vars, parsedArgs.stats)  
     else:
         # Check if categorical vars requested are present in data
-        if not set(parsedArgs.categoricals).issubset(data.columns):
-            print("ERROR: Specified categorical variable(s) not present in data")
+        if utils.checkValidCategoricals(data, parsedArgs.categoricals) == -1:
             return
         table = __tabulateByCategoricals(data, parsedArgs.vars, parsedArgs.stats, parsedArgs.categoricals)
 
