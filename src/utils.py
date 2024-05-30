@@ -67,3 +67,18 @@ def checkValidCategoricals(data, categoricals):
         print("ERROR: Specified categorical variable(s) not present in data")
         return -1
     return 0
+
+
+"""
+Used to check if user-requested output image file for generated plots is valid
+Given the filename, checks if a provided png file is actually a png file.
+Returns 0 if file is valid, otherwise prints an error message and returns -1.
+
+NOTE: THIS ONLY CHECKS IF THE FILENAME IS A .png. It does not check that the file exists, as it does not need to 
+(if it doesn't exist it will be created by matplotlib when the plots are saved to it)
+"""
+def checkValidPng(filename):
+    if filename[-4:] != '.png':
+        print("ERROR: output file must be a .png file")
+        return -1 
+    return 0

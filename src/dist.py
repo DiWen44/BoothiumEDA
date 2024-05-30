@@ -22,7 +22,6 @@ categoricals - a list of variables in the dataset whose values shall be used  to
 The distribution data will then be shown for each category, rather than the dataset as a whole. Denoted in user command by -c or --categoricals.
 If no categoricals are provided, no categorization will take place and summary statistics will be calculated for the whole dataset holistically. By default the categoricals list will be empty.
 
-
 FUNCTION PARAMETERS:
 data - the input dataframe
 args - array of command window argument strings obtained by command interpreter module
@@ -45,7 +44,7 @@ def showDistInfo(data, args):
         return 
     
     # Check if specified output file is a png
-    if  __checkValidPng(parsedArgs.outfile) == -1:
+    if  utils.checkValidPng(parsedArgs.outfile) == -1:
         return 
     
     if parsedArgs.categoricals == []:
@@ -101,11 +100,3 @@ def __plotDistByCategoricals(data, var, categoricals):
     return plot
 
 
-# Used to check if user-requested output file is valid
-# Given the filename, checks if a provided png file is actually a png file.
-# Returns 0 if valid, otherwise prints an error message and returns -1
-def __checkValidPng(filename):
-    if filename[-4:] != '.png':
-        print("ERROR: output file must be a .png file")
-        return -1 
-    return 0
