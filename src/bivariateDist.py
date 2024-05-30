@@ -9,18 +9,20 @@ import utils
 
 
 """
-Shows a seaborn figure containing the histogram and probability function (pdf) plot of a numerical variable's distribution
-If categoricals are passed, then categorizes the datapoints and shows multiple of these distribution plots.
+Shows a plot of the joint/bivariate distribution of 2 numerical variables.
+If categoricals are provided, then categorizes the datapoints and shows multiple of these distribution plots.
 
 COMMAND WINDOW ARGUMENTS:
 
-var - a numerical variable to get the distribution for. 
+v1, v2 - numerical variables to get the joint distribution for. 
+
+type - type of plot to generate, 'gaussian' or 'heatmap'.
 
 outFile - the name of a png file to be created (if it does not exist already) and to save the plot to. 
             In the user's command, this is denoted by -o or --outfile. 
             Set to 'output.png' file by default.
 
-categoricals - a list of variables in the dataset whose values shall be used  to categorize datapoints of the numerical var.
+categoricals - a list of variables in the dataset whose values shall be used  to categorize datapoints.
 The distribution plots will then be shown for each category, rather than the dataset as a whole. Denoted in user command by -c or --categoricals.
 If no categoricals are provided, no categorization will take place and the distribution will be shown for the dataset holistically. 
 By default the categoricals list will be empty.
@@ -33,7 +35,12 @@ def showDist(data, args):
 
     # Deriving argument values from args array using argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('var')
+    parser.add_argument('v1')
+    parser.add_argument('v2')
+    parser.add_argument('type', 
+                        nargs='?', 
+                        choices=('heatmap', 'gaussian'), 
+                        default='heatmap')
     parser.add_argument('-o', '--outfile',
                         nargs='?',
                         default='output.png')
@@ -42,21 +49,21 @@ def showDist(data, args):
                         default=[])
     parsedArgs = parser.parse_args(args)
 
-    # Check if requested numerical var is valid
-    if utils.checkNumericalVarsRequested(data, [parsedArgs.var]) == -1:
+    # Check if requested numerical vars are valid
+    if utils.checkNumericalVarsRequested(data, [parsedArgs.v1, parsedArgs.v2]) == -1:
         return 
     
     # Check if specified output file is a png
-    if  utils.checkValidPng(parsedArgs.outfile) == -1:
+    if utils.checkValidPng(parsedArgs.outfile) == -1:
         return 
     
     if parsedArgs.categoricals == []:
-        plot = __plotDist(data, parsedArgs.var)
+        plot = __plotDist(data, parsedArgs.v1, parsedArgs.v2, parsedArgs.type)
     else:
         # Check if categorical vars requested are present in data
         if utils.checkValidCategoricals(data, parsedArgs.categoricals) == -1:
             return
-        plot = __plotDistByCategoricals(data, parsedArgs.var, parsedArgs.categoricals)
+        plot = __plotDistByCategoricals(data, parsedArgs.v1, parsedArgs.v2, parsedArgs.type, parsedArgs.categoricals)
 
     # Save plot to png file
     plot.figure.savefig(parsedArgs.outfile)
@@ -67,39 +74,42 @@ def showDist(data, args):
 
 
 """
-Returns a seaborn figure graph showing the probability curve (pdf) and a histogram of a provided numerical var.
+Returns a seaborn figure with a plot of a bivariate distribution of 2 numerical vars.
 
 PARAMETERS:
 data - The pandas dataframe holding the data
-var - numerical var to get distribution for
+v1, v2 - numerical vars to get bivariate distribution for
+type - type of plot to generate, 'gaussian' or 'heatmap'.
 """
-def __plotDist(data, var):
-    plot = sns.displot(data=data, kde=True, color='r', x=var, bins='sqrt')
-    plot.set_titles(f"DISTRIBUTION OF {var}")
+def __plotDist(data, v1, v2, type):
+    kind = 'kde' if (type=='gaussian') else 'hist' # Determine "kind" parameter for displot
+    plot = sns.displot(data=data, x=v1, y=v2, kind=kind)
+    plot.set_titles(f"DISTRIBUTION OF {v1}, {v2}")
     return plot
 
 
 """
-Returns a seaborn figure containing a series of plots, each plot showing the probability curve (pdf) 
-and histogram of each category in a provided pd series.
+Returns a seaborn figure containing a series of plots of bivariate distributions, with each plot corresponding to a category.
 
 PARAMETERS:
 data - The pandas dataframe holding the data
-var - numerical var to get distribution for
+v1, v2 - numerical vars to get bivariate distribution for
+type - type of plot to generate, 'gaussian' or 'heatmap'
 categoricals - categorical variable(s) to categorize values of var along
 """
-def __plotDistByCategoricals(data, var, categoricals):
-    cutData = data[categoricals+[var]] # Trim data to get only necessary columns i.e. those for the categoricals and the var, so as to reduce processing time.
+def __plotDistByCategoricals(data, v1, v2, type, categoricals):
+    cutData = data[categoricals+[v1, v2]] # Trim data to get only necessary columns i.e. those for the categoricals and the var, so as to reduce processing time.
+    kind = 'kde' if (type=='gaussian') else 'hist' 
 
     if len(categoricals) > 1: # If more than 1 category requested
         plotData = cutData.set_index(categoricals) # Make index a multiindex of the categoricals
         plotData.index = ['_'.join(row) for row in plotData.index.values] # Fuses plotData's multiindex of categoricals into a single index
-        plot = sns.displot(data=plotData, x=var, kde=True, bins='sqrt', col=plotData.index.values, col_wrap=3)
+        plot = sns.displot(data=plotData, x=v1, y=v2, kind=kind, col=plotData.index.values, col_wrap=3)
     else:
-        plot = sns.displot(data=cutData, x=var, kde=True, bins='sqrt', col=categoricals[0], col_wrap=3)
+        plot = sns.displot(data=cutData, x=v1, y=v2, kind=kind, col=categoricals[0], col_wrap=3)
     
     plot.figure.subplots_adjust(top=0.9)
-    plot.figure.suptitle(f"DISTRIBUTION OF {var} BY {categoricals}")
+    plot.figure.suptitle(f"DISTRIBUTION OF {v1}, {v2} BY {categoricals}")
     return plot
 
 

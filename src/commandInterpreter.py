@@ -3,6 +3,7 @@ import sys
 import summaryStats
 import confidenceIntervals
 import dist
+import bivariateDist
 
 
 # When provided a command string, interprets that command based on first token (the "opcode"). 
@@ -28,9 +29,13 @@ def interpret(command, data):
         case 'ci':
             confidenceIntervals.getCI(data, args)
 
-        # Distribution
+        # Numerical var distribution
         case 'dist':
-            dist.showDistInfo(data, args)
+            dist.showDist(data, args)
+
+        # Bivariate (2 numerical var) distribution
+        case 'bivdist':
+            bivariateDist.showDist(data, args)
 
         case _:
             print("ERROR: Invalid command")
