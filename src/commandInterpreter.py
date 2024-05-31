@@ -4,6 +4,7 @@ import summaryStats
 import confidenceIntervals
 import dist
 import bivariateDist
+import reg
 
 
 # When provided a command string, interprets that command based on first token (the "opcode"). 
@@ -36,6 +37,10 @@ def interpret(command, data):
         # Bivariate (2 numerical var) distribution
         case 'bivdist':
             bivariateDist.showDist(data, args)
+
+        # Simple linear regression & ANOVA
+        case 'reg':
+            reg.analyse(data, args)
 
         case _:
             print("ERROR: Invalid command")
