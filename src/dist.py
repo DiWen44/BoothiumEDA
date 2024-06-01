@@ -19,7 +19,7 @@ var - a numerical variable to get the distribution for.
 outFile - the name of a png file to be created (if it does not exist already) and to save the plot to. 
             In the user's command, this is denoted by -o or --outfile. 
             Set to 'output.png' file by default.
-
+            
 categoricals - a list of variables in the dataset whose values shall be used  to categorize datapoints of the numerical var.
 The distribution plots will then be shown for each category, rather than the dataset as a whole. Denoted in user command by -c or --categoricals.
 If no categoricals are provided, no categorization will take place and the distribution will be shown for the dataset holistically. 

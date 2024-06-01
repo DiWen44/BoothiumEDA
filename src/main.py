@@ -1,5 +1,4 @@
 import sys
-import pandas as pd
 
 import commandInterpreter
 import utils

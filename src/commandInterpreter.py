@@ -40,7 +40,7 @@ def interpret(command, data):
 
         # Simple linear regression & ANOVA
         case 'reg':
-            reg.analyse(data, args)
+            reg.analyze(data, args)
 
         case _:
             print("ERROR: Invalid command")
