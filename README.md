@@ -7,8 +7,8 @@ BoothiumEDA is a command-line tool for simple EDA.
 Python 3.11 or above, and the following python libraries:
 - pandas
 - numpy
+- scipy
 - matplotlib
-- pillow
 - seaborn
 
 ## Usage

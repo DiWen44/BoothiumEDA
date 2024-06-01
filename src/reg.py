@@ -3,7 +3,6 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import sklearn
 from PIL import Image
 from scipy import stats
 
@@ -20,7 +19,7 @@ for the regression model of those two variables
 COMMAND WINDOW ARGUMENTS:
 x - explanatory variable
 y - response variable
-lvl - level of confidence (e.g. 0.99 for a 99% CI) for the confidence intervals of regression parameters 
+lvl - level of confidence (e.g. 0.99 for a 99% CI) for the confidence intervals of regression parameters and to be used for the prediction interval shown on the regression plot
 (alpha and beta). Default is 0.95
 outFile - the name of a png file to be created (if it does not exist already) and to save the plot to. 
             In the user's command, this is denoted by -o or --outfile. 
@@ -49,8 +48,17 @@ def analyze(data, args):
     if utils.checkValidPng(parsed_args.outfile) == -1:
         return
 
-    parameter_stats = __get_model_param_stats(data, parsed_args.lvl, parsed_args.x, parsed_args.y)
+    parameter_stats = __get_model_param_stats(data, parsed_args.x, parsed_args.y, parsed_args.lvl)
     print(parameter_stats)
+
+    # Create and show regression plot
+    fig = plt.figure()
+    plot = sns.regplot(data=data, x=parsed_args.x, y=parsed_args.y, ci=parsed_args.lvl*100)
+    plot.set_title(f"REGRESSION: {parsed_args.y} AGAINST {parsed_args.x}")
+    fig.add_axes(plot)
+    fig.savefig(parsed_args.outfile)
+    img = Image.open(parsed_args.outfile)
+    img.show()
 
 
 """
@@ -70,12 +78,12 @@ def __get_model_param_stats(data, exp_var, resp_var, cl):
     y = data[resp_var]
     n = len(data[[exp_var, resp_var]].dropna())  # No. of datapoints where neither exp_var nor resp_var values are missing
 
-    ahat, bhat = np.polyfit(x, y, 1)  # Sample estimates of alpha and beta
+    bhat, ahat = np.polyfit(x, y, 1)  # Sample estimates of alpha and beta
 
     y_pred = ahat + (bhat*x)
     residuals = np.subtract(y, y_pred)
     rss = np.sum(np.square(residuals))  # Residual sum of squares / sum of squared errors
-    estimated_error_variance = rss/n-2
+    estimated_error_variance = rss/n-2 # Estimated variance of errors
 
     sxx = __sum_of_squares(x)
 
@@ -95,10 +103,10 @@ def __get_model_param_stats(data, exp_var, resp_var, cl):
               f"CI({cl*100}%) upper": [ci_alpha[1], ci_beta[1]]
               }
     return pd.DataFrame(data=output, index=['intercept', 'slope'])
-
+ 
 
 # Calculates the sum of squares of a given series/array
 def __sum_of_squares(series):
     mean = np.mean(series)
-    squares = series - mean
+    squares = np.square(series - mean)
     return np.sum(squares)
