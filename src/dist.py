@@ -33,36 +33,30 @@ def showDist(data, args):
 
     # Deriving argument values from args array using argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('var')
+    parser.add_argument('var', choices=utils.get_numericals(data))
     parser.add_argument('-o', '--outfile',
                         nargs='?',
                         default='output.png')
     parser.add_argument('-c', '--categoricals',
                         nargs='*',
-                        default=[])
-    parsedArgs = parser.parse_args(args)
-
-    # Check if requested numerical var is valid
-    if utils.checkNumericalVarsRequested(data, [parsedArgs.var]) == -1:
-        return 
+                        default=[],
+                        choices=data.columns.values)
+    parsed_args = parser.parse_args(args)
     
     # Check if specified output file is a png
-    if  utils.checkValidPng(parsedArgs.outfile) == -1:
+    if utils.check_valid_png(parsed_args.outfile) == -1:
         return 
     
-    if parsedArgs.categoricals == []:
-        plot = __plotDist(data, parsedArgs.var)
+    if parsed_args.categoricals == []:
+        plot = __plotDist(data, parsed_args.var)
     else:
-        # Check if categorical vars requested are present in data
-        if utils.checkValidCategoricals(data, parsedArgs.categoricals) == -1:
-            return
-        plot = __plotDistByCategoricals(data, parsedArgs.var, parsedArgs.categoricals)
+        plot = __plotDistByCategoricals(data, parsed_args.var, parsed_args.categoricals)
 
     # Save plot to png file
-    plot.figure.savefig(parsedArgs.outfile)
+    plot.figure.savefig(parsed_args.outfile)
 
     # Display saved image
-    img = Image.open(parsedArgs.outfile)
+    img = Image.open(parsed_args.outfile)
     img.show()
 
 

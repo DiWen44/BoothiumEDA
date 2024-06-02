@@ -23,7 +23,7 @@ FUNCTION PARAMETERS:
 data - the input dataframe
 args - array of command window argument strings obtained by command interpreter module
 """
-def getCI(data, args):
+def get_cis(data, args):
 
     # Deriving argument values from args array using argparse
     parser = argparse.ArgumentParser()
@@ -31,51 +31,43 @@ def getCI(data, args):
                         nargs='?',
                         default=0.95,
                         type=float)
-    parser.add_argument('-v','--vars', 
-                        nargs='*', 
-                        default=list(data.select_dtypes(include='number').columns)) # Default value is all numerical variables in the dataset, so the names of the numerical columns in the dataframe
+    parser.add_argument('-v', '--vars',
+                        nargs='*',
+                        default=utils.get_numericals(data),
+                        choices=utils.get_numericals(data))
     parser.add_argument('-c', '--categoricals',
                         nargs='*',
-                        default=[])
-    parsedArgs = parser.parse_args(args)
-
-    # Check if requested numerical vars are valid
-    check = utils.checkNumericalVarsRequested(data, parsedArgs.vars)
-    if check == -1:
-        return 
+                        default=[],
+                        choices=data.columns.values)
+    parsed_args = parser.parse_args(args)
     
     # Check if provided confidence level is valid
-    if parsedArgs.lvl >= 1 or parsedArgs.lvl <= 0:
+    if parsed_args.lvl >= 1 or parsed_args.lvl <= 0:
         print("ERROR: Confidence level must be a float between 0 and 1")
         return
-
 
     # NESTED FUNCTION FOR USE AS AN AGGREGATION FUNCTION IN .agg()
     # Provided a pandas series/column, returns a confidence interval for the population mean of the variable represented by the series/column
     # The interval is returned as a single item list containing a tuple that itself contains the lower and upper bounds (in that order) of the interval
-    # Wrapping the tuple in a list means that pandas will place the interval into a single column of the table, rather than splitting that column into 2 subcolumns
-    def getMeanInt(series):
+    # Wrapping the interval tuple in a list means that pandas will place the interval into a single column of the df, rather than splitting that column into 2 subcolumns
+    def get_mean_int(series):
         n = series.dropna().size 
-        xbar = series.mean() # Sample mean
-        s = series.std() # Sample std
-        cl = parsedArgs.lvl # Confidence level
+        xbar = series.mean()  # Sample mean
+        s = series.std()  # Sample std
+        cl = parsed_args.lvl  # Confidence level
         t_value = stats.t.ppf(1 - cl/2, df=n-1)
-        marginOfErr = t_value * (s / np.sqrt(n))
-        interval = (xbar-marginOfErr, xbar+marginOfErr)
-        return [interval] # Return as a 1 item list, containing the interval as a tuple. This means that pandas will place the interval into a single column of the resulting dataframe
-    
+        margin_of_err = t_value * (s / np.sqrt(n))
+        interval = (xbar-margin_of_err, xbar+margin_of_err)
+        return [interval]
 
-    # Dictionary to map requested vars to getMeanInt() function, for use in .agg()
-    varsDict = {}
-    for var in parsedArgs.vars:
-        varsDict[var] = getMeanInt
+    # Dictionary to map requested vars to get_mean_int() function, for use in .agg()
+    vars_dict = {}
+    for var in parsed_args.vars:
+        vars_dict[var] = get_mean_int
 
-    if parsedArgs.categoricals == []:
-        table = data.agg(varsDict)
+    if parsed_args.categoricals == []:
+        table = data.agg(vars_dict)
     else:
-        # Check if categorical vars requested are present in data
-        if utils.checkValidCategoricals(data, parsedArgs.categoricals) == -1:
-            return
-        table = data.groupby(parsedArgs.categoricals).agg(varsDict)
+        table = data.groupby(parsed_args.categoricals).agg(vars_dict)
     
     print(table)

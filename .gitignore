@@ -1,5 +1,6 @@
 venv
 .vscode
+.idea
 test_data_large.csv
 test_data_small.csv
 src/__pycache__

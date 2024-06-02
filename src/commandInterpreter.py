@@ -24,11 +24,11 @@ def interpret(command, data):
         
         # Summary statistics table
         case 'summary':
-            summaryStats.getStats(data, args)
+            summaryStats.get_stats(data, args)
 
         # Confidence intervals
         case 'ci':
-            confidenceIntervals.getCI(data, args)
+            confidenceIntervals.get_cis(data, args)
 
         # Numerical var distribution
         case 'dist':

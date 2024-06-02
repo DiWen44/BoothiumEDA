@@ -12,15 +12,15 @@ If CSV file isn't valid, prints an appropriate error msg then returns an empty d
 PARAMETERS:
 filename - name of requested csv file
 """
-def checkAndLoadCSVFile(filename):
+def check_and_load_csv_file(filename):
     
     # If provided file isn't a CSV file
     if filename[-4:] != '.csv':
         print("ERROR: Input file must be a CSV file")
-        return pd.DataFrame() # Empty df
+        return pd.DataFrame()  # Empty df
 
     try:
-        data = pd.read_csv(filename) # Load file into pd dataframe
+        data = pd.read_csv(filename)  # Load file into pd dataframe
     except FileNotFoundError:
         print("ERROR: File does not exist")
         return pd.DataFrame()
@@ -28,45 +28,9 @@ def checkAndLoadCSVFile(filename):
     return data
 
 
-"""
-Checks that numerical vars for which data have been requested
-- exist in the data
-- are actually numerical
-
-Returns 0 if these are true, otherwise prints error msg and returns -1.
-
-PARAMETERS:
-data - the input dataframe
-vars - array of strings for the numerical variables
-"""
-def checkNumericalVarsRequested(data, vars):
-    # Check if requested vars are all present in data
-    if not set(vars).issubset(data.columns):
-        print("ERROR: Specified variable(s) not present in data")
-        return -1
-    
-    # Check if requested vars are numerical by iterating through columns of requested vars
-    for i in data[vars]:
-        if not pd.api.types.is_numeric_dtype(data[i]):
-            print(f"ERROR: Variable {i} is not numeric")
-            return -1
-    
-    return 0
-        
-
-"""
-Checks if requested categorical vars are present in the data.
-Returns 0 if valid, otherwise prints error msg and returns -1.
-
-PARAMETERS:
-data - the input dataframe
-categoricals - array of strings for the categorical variables
-"""
-def checkValidCategoricals(data, categoricals):
-    if not set(categoricals).issubset(data.columns):
-        print("ERROR: Specified categorical variable(s) not present in data")
-        return -1
-    return 0
+# For the provided dataframe "data", returns a list of column names that correspond to numerical columns
+def get_numericals(data):
+    return list(data.select_dtypes(include='number').columns)
 
 
 """
@@ -77,7 +41,7 @@ Returns 0 if file is valid, otherwise prints an error message and returns -1.
 NOTE: THIS ONLY CHECKS IF THE FILENAME IS A .png. It does not check that the file exists, as it does not need to 
 (if it doesn't exist it will be created by matplotlib when the plots are saved to it)
 """
-def checkValidPng(filename):
+def check_valid_png(filename):
     if filename[-4:] != '.png':
         print("ERROR: output file must be a .png file")
         return -1 

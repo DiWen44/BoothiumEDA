@@ -45,11 +45,13 @@ def analyze(data, args):
     parsed_args = parser.parse_args(args)
 
     # Check if specified output file is a png
-    if utils.checkValidPng(parsed_args.outfile) == -1:
+    if utils.check_valid_png(parsed_args.outfile) == -1:
         return
 
     parameter_stats = __get_model_param_stats(data, parsed_args.x, parsed_args.y, parsed_args.lvl)
+    print("PARAMETERS:")
     print(parameter_stats)
+    print("\n")
 
     # Create and show regression plot
     fig = plt.figure()
@@ -59,6 +61,11 @@ def analyze(data, args):
     fig.savefig(parsed_args.outfile)
     img = Image.open(parsed_args.outfile)
     img.show()
+
+    # ANOVA
+    print("ANOVA:")
+    anova_table = __anova(data, parsed_args.x, parsed_args.y)
+    print(anova_table)
 
 
 """
@@ -105,8 +112,53 @@ def __get_model_param_stats(data, exp_var, resp_var, cl):
     return pd.DataFrame(data=output, index=['intercept', 'slope'])
  
 
-# Calculates the sum of squares of a given series/array
+# Calculates the corrected sum of squares of a given series/array
 def __sum_of_squares(series):
     mean = np.mean(series)
     squares = np.square(series - mean)
     return np.sum(squares)
+
+
+# Calculates the corrected sum of products of 2 given series/arrays
+def __sum_of_prods(s1, s2):
+    m1 = np.mean(s1)
+    m2 = np.mean(s2)
+    products = np.multiply(s1-m1, s2-m2)
+    return np.sum(products)
+
+
+"""
+Prints an ANOVA table for the given data, which shows:
+
+degrees of freedom (total, regression, residual)
+sum of squares (total, regression, residual)
+mean sum of squares (total, regression, residual)
+FR test statistic and resulting p-value of F-test with that statistic
+
+PARAMETERS:
+data - the input dataframe
+exp_var - name of explanatory variable (x)
+resp_var - name of response variable (y)
+"""
+def __anova(data, exp_var, resp_var):
+    y = data[resp_var]
+    x = data[exp_var]
+    n = len(data[[exp_var, resp_var]].dropna())  # No. of datapoints where neither exp_var nor resp_var values are missing
+
+    tss = __sum_of_squares(y)  # TSS = SYY
+    regss = __sum_of_prods(x, y)**2 / __sum_of_squares(x)  # Regression SS
+    rss = tss - regss  # Residual SS / SSE
+
+    tms = tss / n-1
+    regms = regss
+    rms = rss/n-2
+
+    FR = regms/rms
+    p = stats.f.sf(FR, 1, n-2)
+
+    output = {'df': [1, n-2, n-1],
+              'SS': [regss, rss, tss],
+              'MS': [regms, rms, tms],
+              'FR': [FR],
+              'p': [p]}
+    return pd.DataFrame(data=output, index=['regression', 'residual', 'total'])

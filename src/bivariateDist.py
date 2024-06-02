@@ -35,8 +35,8 @@ def showDist(data, args):
 
     # Deriving argument values from args array using argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('v1')
-    parser.add_argument('v2')
+    parser.add_argument('v1', choices=utils.get_numericals(data))
+    parser.add_argument('v2', choices=utils.get_numericals(data))
     parser.add_argument('type', 
                         nargs='?', 
                         choices=('heatmap', 'gaussian'), 
@@ -46,30 +46,24 @@ def showDist(data, args):
                         default='output.png')
     parser.add_argument('-c', '--categoricals',
                         nargs='*',
-                        default=[])
-    parsedArgs = parser.parse_args(args)
-
-    # Check if requested numerical vars are valid
-    if utils.checkNumericalVarsRequested(data, [parsedArgs.v1, parsedArgs.v2]) == -1:
-        return 
+                        default=[],
+                        choices=data.columns.values)
+    parsed_args = parser.parse_args(args)
     
     # Check if specified output file is a png
-    if utils.checkValidPng(parsedArgs.outfile) == -1:
+    if utils.check_valid_png(parsed_args.outfile) == -1:
         return 
     
-    if parsedArgs.categoricals == []:
-        plot = __plotDist(data, parsedArgs.v1, parsedArgs.v2, parsedArgs.type)
+    if parsed_args.categoricals == []:
+        plot = __plot_dist(data, parsed_args.v1, parsed_args.v2, parsed_args.type)
     else:
-        # Check if categorical vars requested are present in data
-        if utils.checkValidCategoricals(data, parsedArgs.categoricals) == -1:
-            return
-        plot = __plotDistByCategoricals(data, parsedArgs.v1, parsedArgs.v2, parsedArgs.type, parsedArgs.categoricals)
+        plot = __plot_dist_by_categoricals(data, parsed_args.v1, parsed_args.v2, parsed_args.type, parsed_args.categoricals)
 
     # Save plot to png file
-    plot.figure.savefig(parsedArgs.outfile)
+    plot.figure.savefig(parsed_args.outfile)
 
     # Display saved image
-    img = Image.open(parsedArgs.outfile)
+    img = Image.open(parsed_args.outfile)
     img.show()
 
 
@@ -79,10 +73,10 @@ Returns a seaborn figure with a plot of a bivariate distribution of 2 numerical 
 PARAMETERS:
 data - The pandas dataframe holding the data
 v1, v2 - numerical vars to get bivariate distribution for
-type - type of plot to generate, 'gaussian' or 'heatmap'.
+plot_type - type of plot to generate, 'gaussian' or 'heatmap'.
 """
-def __plotDist(data, v1, v2, type):
-    kind = 'kde' if (type=='gaussian') else 'hist' # Determine "kind" parameter for displot
+def __plot_dist(data, v1, v2, plot_type):
+    kind = 'kde' if (plot_type == 'gaussian') else 'hist'  # Determine "kind" parameter for displot
     plot = sns.displot(data=data, x=v1, y=v2, kind=kind)
     plot.set_titles(f"DISTRIBUTION OF {v1}, {v2}")
     return plot
@@ -94,19 +88,19 @@ Returns a seaborn figure containing a series of plots of bivariate distributions
 PARAMETERS:
 data - The pandas dataframe holding the data
 v1, v2 - numerical vars to get bivariate distribution for
-type - type of plot to generate, 'gaussian' or 'heatmap'
+plot_type - type of plot to generate, 'gaussian' or 'heatmap'
 categoricals - categorical variable(s) to categorize values of var along
 """
-def __plotDistByCategoricals(data, v1, v2, type, categoricals):
-    cutData = data[categoricals+[v1, v2]] # Trim data to get only necessary columns i.e. those for the categoricals and the var, so as to reduce processing time.
-    kind = 'kde' if (type=='gaussian') else 'hist' 
+def __plot_dist_by_categoricals(data, v1, v2, plot_type, categoricals):
+    cut_data = data[categoricals+[v1, v2]]  # Trim data to get only necessary columns i.e. those for the categoricals and the var, so as to reduce processing time.
+    kind = 'kde' if (plot_type == 'gaussian') else 'hist'
 
-    if len(categoricals) > 1: # If more than 1 category requested
-        plotData = cutData.set_index(categoricals) # Make index a multiindex of the categoricals
-        plotData.index = ['_'.join(row) for row in plotData.index.values] # Fuses plotData's multiindex of categoricals into a single index
-        plot = sns.displot(data=plotData, x=v1, y=v2, kind=kind, col=plotData.index.values, col_wrap=3)
+    if len(categoricals) > 1:  # If more than 1 category requested
+        plot_data = cut_data.set_index(categoricals)  # Make index a multiindex of the categoricals
+        plot_data.index = ['_'.join(row) for row in plot_data.index.values]  # Fuses plot_data's multiindex of categoricals into a single index
+        plot = sns.displot(data=plot_data, x=v1, y=v2, kind=kind, col=plot_data.index.values, col_wrap=3)
     else:
-        plot = sns.displot(data=cutData, x=v1, y=v2, kind=kind, col=categoricals[0], col_wrap=3)
+        plot = sns.displot(data=cut_data, x=v1, y=v2, kind=kind, col=categoricals[0], col_wrap=3)
     
     plot.figure.subplots_adjust(top=0.9)
     plot.figure.suptitle(f"DISTRIBUTION OF {v1}, {v2} BY {categoricals}")

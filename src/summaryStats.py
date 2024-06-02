@@ -24,43 +24,28 @@ FUNCTION PARAMETERS:
 data - the input dataframe
 args - array of command window argument strings obtained by command interpreter module
 """
-def getStats(data, args):
+def get_stats(data, args):
 
     # Deriving argument values from args array using argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('-v','--vars', 
                         nargs='*', 
-                        default=list(data.select_dtypes(include='number').columns) , # Default value is all numerical variables in the dataset, so the names of the numerical columns in the dataframe
-                        help="The numerical variables to analyze")
+                        default=utils.get_numericals(data),
+                        choices=utils.get_numericals(data))
     parser.add_argument('-s', '--stats',
                         nargs='*', 
                         default=['mean', 'median', 'var'],
-                        help="Summary statistics to find")
+                        choices=['mean', 'median', 'mode', 'count', 'sum', 'std', 'var', 'min', 'max'])
     parser.add_argument('-c', '--categoricals',
                         nargs='*',
                         default=[],
-                        help="Categorical variables along which to seperate data")
-    parsedArgs = parser.parse_args(args)
-    
-    # Check if requested numerical vars are valid
-    check = utils.checkNumericalVarsRequested(data, parsedArgs.vars)
-    if check == -1:
-        return 
-        
-    # Check if requested summary stats are valid
-    validStats = ['mean', 'median', 'mode', 'count', 'sum', 'std', 'var', 'min', 'max']
-    for i in parsedArgs.stats:
-        if i not in validStats:
-            print(f"ERROR: {i} is not a valid summary statistic")
-            return
+                        choices=data.columns.values)
+    parsed_args = parser.parse_args(args)
 
-    if parsedArgs.categoricals == []:
-        table = __tabulate(data, parsedArgs.vars, parsedArgs.stats)  
+    if parsed_args.categoricals == []:
+        table = __tabulate(data, parsed_args.vars, parsed_args.stats)
     else:
-        # Check if categorical vars requested are present in data
-        if utils.checkValidCategoricals(data, parsedArgs.categoricals) == -1:
-            return
-        table = __tabulateByCategoricals(data, parsedArgs.vars, parsedArgs.stats, parsedArgs.categoricals)
+        table = __tabulate_by_categoricals(data, parsed_args.vars, parsed_args.stats, parsed_args.categoricals)
 
     print(table)
 
@@ -82,11 +67,11 @@ TO GROUP SUMMARY STATISTICS FOR NUMERICAL VARIABLES BY CATEGORIES SPECIFIED BY C
 def __tabulate(data, vars, stats):
 
     # Dictionary to map requested vars to array of requested stats, for use in .agg()
-    varsDict = {}
+    vars_dict = {}
     for var in vars:
-        varsDict[var] = stats
+        vars_dict[var] = stats
 
-    table = data.agg(varsDict)
+    table = data.agg(vars_dict)
     return table
             
                 
@@ -109,12 +94,12 @@ vars - array of numerical variables to find summary statistics for
 stats - array of summary statistics (e.g. mean, variance, mode) to find. 
 categoricals - categorical variables in the data to divide entries into categories along, so as to be able to find summary statistics for each category.
 """
-def __tabulateByCategoricals(data, vars, stats, categoricals):
+def __tabulate_by_categoricals(data, vars, stats, categoricals):
 
     # Dictionary to map requested vars to array of requested stats, for use in .agg()
-    varsDict = {}
+    vars_dict = {}
     for var in vars:
-        varsDict[var] = stats
+        vars_dict[var] = stats
 
-    table = (data.groupby(categoricals)).agg(varsDict)
+    table = (data.groupby(categoricals)).agg(vars_dict)
     return table

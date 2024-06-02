@@ -7,17 +7,17 @@ import utils
 # Command-line arg is name of input CSV file
 try:
     filename = sys.argv[1]
-except IndexError: # If no file was provided
+except IndexError:  # If no file was provided
     print("ERROR: No input CSV file provided")
     sys.exit()
 
-data = utils.checkAndLoadCSVFile(filename)
+data = utils.check_and_load_csv_file(filename)
 if data.empty:
     sys.exit()
 
 print("-"*40 + "\n")
 
-print("EDA TOOL: \n")
+print("BOOTHIUMEDA: \n")
 print("Type HELP command for information \n\n")
 
 # Command loop
