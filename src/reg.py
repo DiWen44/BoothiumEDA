@@ -67,6 +67,8 @@ def analyze(data, args):
     anova_table = __anova(data, parsed_args.x, parsed_args.y)
     print(anova_table)
 
+    print("\n")
+
 
 """
 Return a dataframe of statistics for the slope(beta) and intercept(alpha) linear regression parameters

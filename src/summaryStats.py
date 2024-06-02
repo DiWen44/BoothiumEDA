@@ -48,6 +48,7 @@ def get_stats(data, args):
         table = __tabulate_by_categoricals(data, parsed_args.vars, parsed_args.stats, parsed_args.categoricals)
 
     print(table)
+    print("\n")
 
 
 """
