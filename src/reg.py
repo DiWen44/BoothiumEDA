@@ -92,7 +92,7 @@ def __get_model_param_stats(data, exp_var, resp_var, cl):
     y_pred = ahat + (bhat*x)
     residuals = np.subtract(y, y_pred)
     rss = np.sum(np.square(residuals))  # Residual sum of squares / sum of squared errors
-    estimated_error_variance = rss/n-2 # Estimated variance of errors
+    estimated_error_variance = rss/n-2  # Estimated variance of errors
 
     sxx = __sum_of_squares(x)
 
@@ -156,12 +156,12 @@ def __anova(data, exp_var, resp_var):
     regms = regss
     rms = rss/n-2
 
-    FR = regms/rms
-    p = stats.f.sf(FR, 1, n-2)
+    fr = regms/rms
+    p = stats.f.sf(fr, 1, n-2)
 
     output = {'df': [1, n-2, n-1],
               'SS': [regss, rss, tss],
               'MS': [regms, rms, tms],
-              'FR': [FR],
+              'FR': [fr],
               'p': [p]}
     return pd.DataFrame(data=output, index=['regression', 'residual', 'total'])

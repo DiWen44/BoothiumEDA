@@ -32,11 +32,11 @@ def interpret(command, data):
 
         # Numerical var distribution
         case 'dist':
-            dist.showDist(data, args)
+            dist.show_dist(data, args)
 
         # Bivariate (2 numerical var) distribution
         case 'bivdist':
-            bivariateDist.showDist(data, args)
+            bivariateDist.show_dist(data, args)
 
         # Simple linear regression & ANOVA
         case 'reg':

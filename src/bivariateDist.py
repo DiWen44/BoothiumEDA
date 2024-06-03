@@ -1,14 +1,11 @@
 import argparse
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
 import seaborn as sns
 from PIL import Image
 
 import utils
 
 
-def showDist(data, args):
+def show_dist(data, args):
     """ Shows a plot of the joint/bivariate distribution of 2 numerical variables.
     If categoricals are provided, then categorizes the datapoints and shows multiple of these distribution plots.
 
@@ -104,5 +101,3 @@ def __plot_dist_by_categoricals(data, v1, v2, plot_type, categoricals):
     plot.figure.subplots_adjust(top=0.9)
     plot.figure.suptitle(f"DISTRIBUTION OF {v1}, {v2} BY {categoricals}")
     return plot
-
-

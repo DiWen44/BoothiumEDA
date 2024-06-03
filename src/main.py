@@ -25,6 +25,3 @@ while True:
     command = str(input("> "))
     print("\n")
     commandInterpreter.interpret(command, data)
-
-
-
