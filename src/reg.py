@@ -9,33 +9,33 @@ from scipy import stats
 import utils
 
 
-"""
-For an explanatory var and a response var provided by the user, outputs:
-- a table including sample estimates and confidence intervals of the linear regression intercept and slope parameters
-for the regression model of those two variables
-- a seaborn plot including a scatterplot and the fitted regression line
-- An ANOVA table
-
-COMMAND WINDOW ARGUMENTS:
-x - explanatory variable
-y - response variable
-lvl - level of confidence (e.g. 0.99 for a 99% CI) for the confidence intervals of regression parameters and to be used for the prediction interval shown on the regression plot
-(alpha and beta). Default is 0.95
-outFile - the name of a png file to be created (if it does not exist already) and to save the plot to. 
-            In the user's command, this is denoted by -o or --outfile. 
-            Set to 'output.png' file by default.
-
-FUNCTION PARAMETERS:
-data - the input dataframe
-args - array of command window argument strings obtained by command interpreter module
-"""
 def analyze(data, args):
+    """ For an explanatory var and a response var provided by the user, outputs:
+        - A table including sample estimates and confidence intervals of the linear regression intercept and slope parameters
+            for the regression fit of those two variables
+        - A seaborn plot including a scatterplot and the fitted regression line
+        - An ANOVA table
+
+    COMMAND WINDOW ARGUMENTS:
+        x - explanatory variable
+        y - response variable
+        cl - level of confidence (e.g. 0.99 for a 99% CI) for the confidence intervals of regression parameters and to
+                be used for the prediction interval shown on the regression plot
+                (alpha and beta). Default is 0.95
+        outFile - the name of a png file to be created (if it does not exist already) and to save the plot to.
+                    In the user's command, this is denoted by -o or --outfile.
+                    Set to 'output.png' file by default.
+
+    FUNCTION PARAMETERS:
+        data - the input dataframe
+        args - array of command window argument strings obtained by command interpreter module
+    """
 
     # Deriving argument values from args array using argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('x', choices=list(data.select_dtypes(include='number').columns))  # Explanatory var
     parser.add_argument('y', choices=list(data.select_dtypes(include='number').columns))  # Response var
-    parser.add_argument('lvl',
+    parser.add_argument('cl',
                         nargs='?',
                         default=0.95,
                         type=float)
@@ -48,14 +48,14 @@ def analyze(data, args):
     if utils.check_valid_png(parsed_args.outfile) == -1:
         return
 
-    parameter_stats = __get_model_param_stats(data, parsed_args.x, parsed_args.y, parsed_args.lvl)
+    parameter_stats = __get_model_param_stats(data, parsed_args.x, parsed_args.y, parsed_args.cl)
     print("PARAMETERS:")
     print(parameter_stats)
     print("\n")
 
     # Create and show regression plot
     fig = plt.figure()
-    plot = sns.regplot(data=data, x=parsed_args.x, y=parsed_args.y, ci=parsed_args.lvl*100)
+    plot = sns.regplot(data=data, x=parsed_args.x, y=parsed_args.y, ci=parsed_args.cl*100)
     plot.set_title(f"REGRESSION: {parsed_args.y} AGAINST {parsed_args.x}")
     fig.add_axes(plot)
     fig.savefig(parsed_args.outfile)
@@ -70,19 +70,19 @@ def analyze(data, args):
     print("\n")
 
 
-"""
-Return a dataframe of statistics for the slope(beta) and intercept(alpha) linear regression parameters
-For each of these 2 parameters, the dataframe will show:
- - The sample estimates/observed value
- - The lower & upper bound of a confidence interval for the population value of that parameter
- 
-PARAMETERS:
-data - the input dataframe
-exp_var - name of explanatory variable (x)
-resp_var - name of response variable (y)
-cl - level of confidence for confidence interval (e.g. 0.99 for a 99% CI).
-"""
 def __get_model_param_stats(data, exp_var, resp_var, cl):
+    """ Return a dataframe of statistics for the slope(beta) and intercept(alpha) linear regression parameters
+
+    For each of these 2 parameters, the dataframe will show:
+        - The sample estimates/observed value
+        - The lower & upper bound of a confidence interval for the population value of that parameter
+
+    PARAMETERS:
+        data - the input dataframe
+        exp_var - name of explanatory variable (x)
+        resp_var - name of response variable (y)
+        cl - level of confidence for confidence interval (e.g. 0.99 for a 99% CI).
+    """
     x = data[exp_var]
     y = data[resp_var]
     n = len(data[[exp_var, resp_var]].dropna())  # No. of datapoints where neither exp_var nor resp_var values are missing
@@ -114,35 +114,36 @@ def __get_model_param_stats(data, exp_var, resp_var, cl):
     return pd.DataFrame(data=output, index=['intercept', 'slope'])
  
 
-# Calculates the corrected sum of squares of a given series/array
 def __sum_of_squares(series):
+    """Calculates the corrected sum of squares of a given series/array"""
     mean = np.mean(series)
     squares = np.square(series - mean)
     return np.sum(squares)
 
 
-# Calculates the corrected sum of products of 2 given series/arrays
 def __sum_of_prods(s1, s2):
+    """Calculates the corrected sum of products of 2 given series/arrays"""
     m1 = np.mean(s1)
     m2 = np.mean(s2)
     products = np.multiply(s1-m1, s2-m2)
     return np.sum(products)
 
 
-"""
-Prints an ANOVA table for the given data, which shows:
-
-degrees of freedom (total, regression, residual)
-sum of squares (total, regression, residual)
-mean sum of squares (total, regression, residual)
-FR test statistic and resulting p-value of F-test with that statistic
-
-PARAMETERS:
-data - the input dataframe
-exp_var - name of explanatory variable (x)
-resp_var - name of response variable (y)
-"""
 def __anova(data, exp_var, resp_var):
+    """
+    Prints an ANOVA table for the given data
+
+    This table will show:
+        - degrees of freedom (total, regression, residual)
+        - sum of squares (total, regression, residual)
+        - mean sum of squares (total, regression, residual)
+        - FR test statistic and resulting p-value of F-test with that statistic
+
+    PARAMETERS:
+        data - the input dataframe
+        exp_var - name of explanatory variable (x)
+        resp_var - name of response variable (y)
+    """
     y = data[resp_var]
     x = data[exp_var]
     n = len(data[[exp_var, resp_var]].dropna())  # No. of datapoints where neither exp_var nor resp_var values are missing
