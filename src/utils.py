@@ -28,11 +28,9 @@ def check_and_load_csv_file(filename):
     return data
 
 
-#
 def get_numericals(data):
     """For the provided dataframe "data", returns a list of column names that correspond to numerical vars/columns in that df"""
     return list(data.select_dtypes(include='number').columns)
-
 
 
 def check_valid_png(filename):
