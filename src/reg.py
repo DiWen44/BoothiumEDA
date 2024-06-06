@@ -33,8 +33,8 @@ def analyze(data, args):
 
     # Deriving argument values from args array using argparse
     parser = argparse.ArgumentParser()
-    parser.add_argument('x', choices=list(data.select_dtypes(include='number').columns))  # Explanatory var
-    parser.add_argument('y', choices=list(data.select_dtypes(include='number').columns))  # Response var
+    parser.add_argument('x', choices=utils.get_numericals(data))  # Explanatory var
+    parser.add_argument('y', choices=utils.get_numericals(data))  # Response var
     parser.add_argument('cl',
                         nargs='?',
                         default=0.95,

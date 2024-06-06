@@ -4,8 +4,7 @@ import utils
 
 
 def get_stats(data, args):
-    """
-    Prints table of summary stats based on passed command arguments
+    """ Prints table of summary stats based on passed command arguments
 
     COMMAND WINDOW ARGUMENTS:
 
