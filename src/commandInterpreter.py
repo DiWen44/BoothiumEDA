@@ -6,9 +6,22 @@ import dist
 import reg
 import tests
 
-# When provided a command string, interprets that command based on first token (the "opcode"). 
-# Also takes the user's input data as a pd dataframe called "data".
+
 def interpret(command, data):
+    """ When provided a command string, interprets that command and calls an appropriate function.
+
+        As their first token, commands have an opcode, specifying the statistical method to use (e.g. dist, summary, reg).
+
+        For most methods, all the following tokens are method-pertinent arguments to be passed to the analysis function
+        (e.g. confidence level for confidenceIntervals, x and y variables for reg.)
+        This is with the exception of the dist and tests modules, for whom the second token is a "kind" specifier that
+        indicates (for dist) whether to compute a univariate or bivariate distribution or (for tests) which type of
+        t-test to use. All the following tokens are then method-pertinent arguments.
+
+        PARAMETERS:
+            command - string representing the command inputted by the user
+            data - the input dataframe
+    """
     command = command.split()
     opcode = command[0]
 
@@ -18,7 +31,20 @@ def interpret(command, data):
             sys.exit(0)
         
         case 'help':
-            print("help placeholder")
+            method = command[1]
+            match method:
+                case 'summary':
+                    summaryStats.print_help()
+                case 'ci':
+                    confidenceIntervals.print_help()
+                case 'dist':
+                    dist.print_help()
+                case 'reg':
+                    reg.print_help()
+                case 'test':
+                    tests.print_help()
+                case _:
+                    print(f"ERROR: {method} is not a valid function")
         
         # Summary statistics table
         case 'summary':
@@ -34,9 +60,9 @@ def interpret(command, data):
         case 'dist':
             kind = command[1]
             args = command[2:]
-            if kind == 'univ' or kind == 'U':
+            if kind == 'univ' or kind == 'u':
                 dist.show_dist(data, args)
-            elif kind == 'biv' or kind == 'B':
+            elif kind == 'biv' or kind == 'b':
                 dist.show_biv_dist(data, args)
             else:
                 print("ERROR: Invalid command")
@@ -65,4 +91,3 @@ def interpret(command, data):
 
         case _:
             print("ERROR: Invalid command")
-    

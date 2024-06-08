@@ -100,7 +100,7 @@ def show_biv_dist(data, args):
 
         v1, v2 - numerical variables to get the joint distribution for.
 
-        type - type of plot to generate, 'gaussian' or 'heatmap'.
+        plot_type - type of plot to generate, 'gaussian' or 'heatmap'.
 
         outFile - the name of a png file to be created (if it does not exist already) and to save the plot to.
                     In the user's command, this is denoted by -o or --outfile.
@@ -120,7 +120,7 @@ def show_biv_dist(data, args):
     parser = argparse.ArgumentParser()
     parser.add_argument('v1', choices=utils.get_numericals(data))
     parser.add_argument('v2', choices=utils.get_numericals(data))
-    parser.add_argument('type',
+    parser.add_argument('plot_type',
                         nargs='?',
                         choices=('heatmap', 'gaussian'),
                         default='heatmap')
@@ -138,9 +138,9 @@ def show_biv_dist(data, args):
         return
 
     if parsed_args.categoricals == []:
-        plot = __plot_biv_dist(data, parsed_args.v1, parsed_args.v2, parsed_args.type)
+        plot = __plot_biv_dist(data, parsed_args.v1, parsed_args.v2, parsed_args.plot_type)
     else:
-        plot = __plot_biv_dist_by_categoricals(data, parsed_args.v1, parsed_args.v2, parsed_args.type,
+        plot = __plot_biv_dist_by_categoricals(data, parsed_args.v1, parsed_args.v2, parsed_args.plot_type,
                                            parsed_args.categoricals)
 
     # Save plot to png file
@@ -190,3 +190,21 @@ def __plot_biv_dist_by_categoricals(data, v1, v2, plot_type, categoricals):
     plot.figure.subplots_adjust(top=0.9)
     plot.figure.suptitle(f"DISTRIBUTION OF {v1}, {v2} BY {categoricals}")
     return plot
+
+
+def print_help():
+    """Prints a help message for this module"""
+    print("FOR UNIVARIATE DIST:")
+    print("\tusage: dist [U/univ] [var] [-o/--outfile] [-c/--categoricals]")
+    print("\t\tvar                   Numerical variable to show dist for")
+    print("\t\t-o/--outfile          Name of .png file to save outputted plot image to, if so desired")
+    print("\t\t-c/--categoricals     List of categorical variables to categorize datapoints on (default: None). No categorization if none provided")
+    print("\n")
+
+    print("FOR BIVARIATE DIST:")
+    print("\tusage: dist [B/biv] [v1] [v2] [plot_type] [-o/--outfile] [-c/--categoricals]")
+    print("\t\tv1, v2                Numerical variables to show dist for")
+    print("\t\tplot_type                  Type of plot to generate, 'gaussian' or 'heatmap' (default: 'heatmap')")
+    print("\t\t-o/--outfile          Name of .png file to save outputted plot image to, if so desired")
+    print("\t\t-c/--categoricals     List of categorical variables to categorize datapoints on (default: None). No categorization if none provided")
+    print("\n")

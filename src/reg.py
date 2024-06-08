@@ -165,3 +165,13 @@ def __anova(data, exp_var, resp_var):
               'FR': [fr],
               'p': [p]}
     return pd.DataFrame(data=output, index=['regression', 'residual', 'total'])
+
+
+def print_help():
+    """Prints a help message for this module"""
+    print("usage: reg [x] [y] [cl] [-o/--outfile]")
+    print("\tx               Explanatory variable")
+    print("\ty               Response variable")
+    print("\tcl              Level of confidence for intervals (e.g. 0.99 for a 99% CI). Default is 0.95")
+    print("\t-o/--outfile    Name of .png file to save outputted plot image to, if so desired")
+    print("\n")

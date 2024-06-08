@@ -72,3 +72,12 @@ def get_cis(data, args):
         table = data.groupby(parsed_args.categoricals).agg(vars_dict)
     
     print(table)
+
+
+def print_help():
+    """Prints a help message for this module"""
+    print("usage: ci [lvl] [-v/--vars] [-c/--categoricals]")
+    print("\tlvl                   Level of confidence for intervals (e.g. 0.99 for a 99% CI). Default is 0.95")
+    print("\t-v/--vars             List of numerical variables to get summary statistics for (default: all numerical vars in data)")
+    print("\t-c/--categoricals     List of categorical variables to categorize datapoints on (empty by default). No categorization if none provided")
+    print("\n")

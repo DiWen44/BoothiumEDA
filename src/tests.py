@@ -170,3 +170,34 @@ def __print_result(res):
     """ When provided a TtestResult object (generated from a stats ttest), tabulates it into a dataframe then prints """
     output = pd.Series(data=[res.statistic, res.pvalue, res.df], index=['T', 'p', 'df'])
     print(output)
+
+
+def print_help():
+    """Prints a help message for this module"""
+    print("1 SAMPLE T-TEST:")
+    print("\tusage: test 1samp [var] [h0] [alternative]")
+    print("\t\tvar                   Numerical variable to test")
+    print("\t\th0                    Value of population mean according to null hypothesis")
+    print("\t\talternative           'less', 'greater', or 'two-sided' (defaults to 'two-sided')")
+    print("\n")
+
+    print("T-TEST FOR DIFFERENCE OF MEANS BETWEEN 2 (INDEPENDENT) CATEGORIES:")
+    print("\tusage: test 2samp_cat [var] [categorical] [c1] [c2] [alternative]")
+    print("\t\tvar                    Numerical variable to test")
+    print("\t\tcategorical            Categorical variable")
+    print("\t\tc1,c2                  Categories of categorical variable to test diff. of means between")
+    print("\t\talternative            'less', 'greater', or 'two-sided' (defaults to 'two-sided')")
+    print("\n")
+
+    print("T-TEST FOR DIFFERENCE OF MEANS BETWEEN 2 (INDEPENDENT) VARIABLES/COLUMNS:")
+    print("\tusage: test 2samp_col [col1] [col2] [alternative]")
+    print("\t\tcol1,col2               Numerical columns/variables to test")
+    print("\t\talternative            'less', 'greater', or 'two-sided' (defaults to 'two-sided')")
+    print("\n")
+
+
+    print("DIFFERENCE OF MEANS T-TEST BETWEEN PAIRED/RELATED COLUMNS/VARIABLES:")
+    print("\tusage: test paired [col1] [col2] [alternative]")
+    print("\t\tcol1,col2              PAIRED/RELATED Numerical columns/variables to test")
+    print("\t\talternative            'less', 'greater', or 'two-sided' (defaults to 'two-sided')")
+    print("\n")

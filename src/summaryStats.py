@@ -99,3 +99,13 @@ def __tabulate_by_categoricals(data, vars, stats, categoricals):
 
     table = (data.groupby(categoricals)).agg(vars_dict)
     return table
+
+
+def print_help():
+    """Prints a help message for this module"""
+    print("usage: summary [-v/--vars] [-s/--stats] [-c/--categoricals]")
+    print("\t-v/--vars             List of numerical variables to get summary statistics for (default: all numerical vars in data)")
+    print("\t-s/--stats            List of summary stats to get (default: mean, median, variance)")
+    print("\t-c/--categoricals     List of categorical variables to categorize datapoints on (default: None). No categorization if none provided")
+    print("\n")
+
